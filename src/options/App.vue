@@ -16,6 +16,11 @@
                     <span class="checkbox" v-bind:checked="al_enabled"></span>
                     <span style="margin-left:.75rem;vertical-align:middle;">Aktiver auto login</span>
                 </label>
+                <label for="activateAutoChooseLogin" style="user-select:none;cursor:pointer;display:block;">
+                    <input type="checkbox" name="activateAutoChooseLogin" id="activateAutoChooseLogin" @change="toggleAutoChooseUnilogin();" v-model="auto_choose_login">
+                    <span class="checkbox" v-bind:checked="auto_choose_login"></span>
+                    <span style="margin-left:.75rem;vertical-align:middle;">Automatsik loginvælger</span>
+                </label>
             </div>
             <Username></Username>
             <Password></Password>
@@ -198,7 +203,18 @@ export default {
         return {
             version: chrome.runtime.getManifest().version,
             al_enabled: false,
+            auto_choose_login: false,
             success: false
+        }
+    },
+    watch: {
+        al_enabled: function(val, oldVal) {
+            optionsService.$emit('trigger_al_enable', this.al_enabled);
+            chrome.storage.sync.set({ ual_active: this.al_enabled });
+        },
+        auto_choose_login: function(val, oldVal) {
+            optionsService.$emit('trigger_al_enable', this.auto_choose_login);
+            chrome.storage.sync.set({ aul_auto_choose_login: this.auto_choose_login });
         }
     },
     methods: {
@@ -230,14 +246,15 @@ export default {
         },
 
         toggleAutoLogin() {
-            optionsService.$emit('trigger_al_enable', this.al_enabled);
-            chrome.storage.sync.set({ ual_active: this.al_enabled });
+            
         }
     },
     created() {
-        chrome.storage.sync.get(['ual_active'], d => {
+        chrome.storage.sync.get(['ual_active', 'aul_auto_choose_login'], d => {
             this.al_enabled = d.ual_active
+            this.auto_choose_login = d.aul_auto_choose_login
             optionsService.$emit('trigger_al_enable', this.al_enabled);
+            optionsService.$emit('trigger_auto_choose_login', this.auto_choose_login);
         });
     }
 }
